@@ -1,3 +1,6 @@
+KERNEL_LMA = 0x0000000000200000; /* 2 MEG */
+KERNEL_VMA = 0xffffffff80000000 + KERNEL_LMA;
+
 ENTRY(_start)
 SECTIONS
 {
@@ -5,7 +8,7 @@ SECTIONS
 
     .bootstrap :
     {
-        <path of bootstrap object> (.text)
+        bin/boot.o (.text)
     }
 
     . += KERNEL_VMA;

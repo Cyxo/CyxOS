@@ -30,14 +30,14 @@ stack_top:
 .global _start
 .type _start, @function
 _start:
-   movl $stack_top, %esp
+   mov   $stack_top, %rsp
 
    /* Reset EFLAGS. */
-   pushl   $0
+   push  $0
    popf
 
-   pushl %ebx
-   pushl %eax
+   push  %rbx
+   push  %rax
 
    call main
 

@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void kernel_main(void)
+void main(void)
 {
     /* What goes here is up to you */
 }
