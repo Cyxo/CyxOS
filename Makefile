@@ -9,8 +9,10 @@ run: iso
 init:
 	@mkdir -vp bin
 
-kernel:# src/kernel.c
-	echo yay
+kernel: src/link.ld src/kernel.c
+	$(CC) -ffreestanding -mcmodel=large -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -c src/kernel.c -o bin/kernel.o
+
+	$(CC) -ffreestanding -z max-page-size=0x1000 -T src/link.ld bin/kernel.o -o kernel.bin -nostdlib -lgcc
 
 iso: all
     cp bin/kernel.bin boot/
