@@ -1,58 +1,49 @@
-KERNEL_LMA = 0x0000000000200000; /* 2 MEG */
-KERNEL_VMA = 0xffffffff80000000 + KERNEL_LMA;
-
+/* The bootloader will look at this image and start execution at the symbol
+   designated as the entry point. */
 ENTRY(_start)
+
+/* Tell where the various sections of the object files will be put in the final
+   kernel image. */
 SECTIONS
 {
-    . = KERNEL_LMA;
+	/* Begin putting sections at 1 MiB, a conventional place for kernels to be
+	   loaded at by the bootloader. */
+	. = 1M;
 
-    .bootstrap :
-    {
-        bin/boot.o (.text)
-    }
+	/* First put the multiboot header, as it is required to be put very early
+	   early in the image or the bootloader won't recognize the file format.
+	   Next we'll put the .text section. */
+	.bootstrap BLOCK(4K) : ALIGN(4K)
+	{
+	    bin/boot.o (.multiboot)
+	    bin/boot.o (.text)
+	}
 
-    . += KERNEL_VMA;
+	.text BLOCK(4K) : ALIGN(4K)
+	{
+		*(.multiboot)
+		*(.text)
+	}
 
-    .text : AT(ADDR(.text) - KERNEL_VMA)
-    {
-        _code = .;
-        *(.text)
-        *(.rodata*)
-        . = ALIGN(4096);
-    }
+	/* Read-only data. */
+	.rodata BLOCK(4K) : ALIGN(4K)
+	{
+		*(.rodata)
+	}
 
-   .data : AT(ADDR(.data) - KERNEL_VMA)
-   {
-        _data = .;
-        *(.data)
-        . = ALIGN(4096);
-   }
+	/* Read-write data (initialized) */
+	.data BLOCK(4K) : ALIGN(4K)
+	{
+		*(.data)
+	}
 
-   .eh_frame : AT(ADDR(.eh_frame) - KERNEL_VMA)
-   {
-       _ehframe = .;
-       *(.eh_frame)
-        . = ALIGN(4096);
-   }
+	/* Read-write data (uninitialized) and stack */
+	.bss BLOCK(4K) : ALIGN(4K)
+	{
+		*(COMMON)
+		*(.bss)
+	}
 
-   .bss : AT(ADDR(.bss) - KERNEL_VMA)
-   {
-       _bss = .;
-       *(.bss)
-
-       /*
-        * You usually need to include generated COMMON symbols
-        * under kernel BSS section or use gcc's -fno-common
-        */
-
-        *(COMMON)
-       . = ALIGN(4096);
-   }
-
-   _end = .;
-
-   /DISCARD/ :
-   {
-        *(.comment)
-   }
+	/* The compiler may produce other sections, by default it will put them in
+	   a segment with the same name. Simply add stuff here as needed. */
 }
